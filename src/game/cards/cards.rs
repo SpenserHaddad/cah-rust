@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fmt::{Display, Formatter};
+use super::deck::Deck;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BlackCard {
@@ -25,7 +26,7 @@ impl Display for WhiteCard {
     }
 }
 
-pub fn load_cards() -> (Vec<BlackCard>, Vec<WhiteCard>) {
+pub fn load_cards() -> (Deck<BlackCard>, Deck<WhiteCard>) {
     let card_json_bytes = include_bytes!("cards.json");
     let card_json: Value = serde_json::from_slice(card_json_bytes).unwrap();
     let card_data = card_json.as_object().unwrap();
@@ -47,5 +48,7 @@ pub fn load_cards() -> (Vec<BlackCard>, Vec<WhiteCard>) {
         })
         .collect();
 
-    (black_cards, white_cards)
+    let black_deck = Deck::new(black_cards);
+    let white_deck = Deck::new(white_cards);
+    (black_deck, white_deck)
 }
