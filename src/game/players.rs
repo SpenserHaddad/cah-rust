@@ -1,4 +1,6 @@
-use super::cards::WhiteCard;
+use game::cards::WhiteCard;
+
+use crate::game;
 
 pub struct Player {
     name: String,

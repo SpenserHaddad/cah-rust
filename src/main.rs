@@ -1,8 +1,7 @@
-mod cards;
-mod players;
+mod game;
 
-use cards::{load_cards, BlackCard, WhiteCard};
-use players::Player;
+use game::cards::{load_cards, BlackCard, WhiteCard};
+use game::players::Player;
 use rand::distributions::{Distribution, Uniform};
 
 fn main() -> Result<(), ()> {
