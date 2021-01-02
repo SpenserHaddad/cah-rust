@@ -1,19 +1,20 @@
 use rand::seq::SliceRandom;
 
-pub struct Deck<T> where T: Copy {
+pub struct Deck<T> where T: Clone {
     draw_pile: Vec<T>,
     active_cards: Vec<T>,
     discard_pile: Vec<T>,
     deck_size: usize,
 }
 
-impl<T> Deck<T> where T: Copy {
+impl<T> Deck<T> where T: Clone {
     pub fn new(cards: Vec<T> ) -> Self {
+        let deck_size = cards.len();
         Self {
             draw_pile: cards,
             active_cards: Vec::new(),
             discard_pile: Vec::new(),
-            deck_size: cards.len(),
+            deck_size,
         }
     }
 
