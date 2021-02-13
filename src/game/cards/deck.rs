@@ -1,11 +1,18 @@
+use std::fmt::Debug;
+
 use rand::seq::SliceRandom;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DeckError {
     NoCards,
+    InvalidCards,
 }
 
-pub struct Deck<T> {
+#[derive(Debug)]
+pub struct Deck<T>
+where
+    T: Debug,
+{
     draw_pile: Vec<T>,
     active_cards: Vec<T>,
     discard_pile: Vec<T>,
@@ -14,16 +21,20 @@ pub struct Deck<T> {
 
 impl<T> Deck<T>
 where
-    T: Clone,
+    T: Clone + Debug,
 {
-    pub fn new(cards: Vec<T>) -> Self {
+    pub fn new(cards: Vec<T>) -> Result<Self, DeckError> {
+        if cards.is_empty() {
+            return Err(DeckError::InvalidCards);
+        }
         let deck_size = cards.len();
-        Self {
+        let new_deck = Self {
             draw_pile: cards,
             active_cards: Vec::new(),
             discard_pile: Vec::new(),
             deck_size,
-        }
+        };
+        Ok(new_deck)
     }
 
     pub fn draw(&mut self) -> Result<T, DeckError> {
@@ -71,14 +82,23 @@ mod tests {
     #[test]
     fn test_create_deck() {
         let ints = vec![1, 2, 3, 4, 5];
-        let int_deck = Deck::new(ints);
-        assert_eq!(int_deck.len(), 5)
+        let int_deck = Deck::new(ints).unwrap();
+        assert_eq!(int_deck.len(), 5);
+    }
+
+    #[test]
+    fn test_create_deck_empty_deck_returns_err() {
+        let empty_vec: Vec<i32> = Vec::new();
+        match Deck::new(empty_vec) {
+            Ok(_deck) => assert!(false),
+            Err(_de) => assert!(true),
+        }
     }
 
     #[test]
     fn test_draw_returns_correct_value() {
         let ints = vec![1, 2, 3, 4, 5];
-        let mut int_deck = Deck::new(ints);
+        let mut int_deck = Deck::new(ints).unwrap();
         let drawn_int = int_deck.draw().unwrap();
         assert_eq!(drawn_int, 1);
     }
@@ -86,7 +106,7 @@ mod tests {
     #[test]
     fn test_draw_no_cards_returns_err() {
         let ints = vec![0];
-        let mut int_deck = Deck::new(ints);
+        let mut int_deck = Deck::new(ints).unwrap();
         let drawn_int = int_deck.draw().unwrap();
         assert_eq!(drawn_int, 0);
 
@@ -98,8 +118,18 @@ mod tests {
     fn test_draw_many_returns_values() {
         let ints = vec![1, 2, 3, 4, 5];
         let expected_ints = vec![1, 2, 3];
-        let mut int_deck = Deck::new(ints);
+        let mut int_deck = Deck::new(ints).unwrap();
         let drawn_ints = int_deck.draw_many(3).unwrap();
         assert_eq!(drawn_ints, expected_ints);
+    }
+
+    #[test]
+    fn test_draw_many_too_many_cards_returns_err() {
+        let ints = vec![1, 2, 3, 4, 5];
+        let mut int_deck = Deck::new(ints).unwrap();
+        match int_deck.draw_many(10) {
+            Ok(_cards) => assert!(false),
+            Err(_de) => assert!(true),
+        }
     }
 }
