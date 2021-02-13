@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fmt::{Display, Formatter};
-use super::deck::Deck;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BlackCard {
@@ -12,6 +11,25 @@ pub struct BlackCard {
 impl Display for BlackCard {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(f, "\"{}\" (Pick {})", self.text, self.pick)
+    }
+}
+
+impl Clone for BlackCard {
+    fn clone(&self) -> Self {
+        Self {
+            text: self.text.clone(),
+            pick: self.pick,
+        }
+    }
+}
+
+impl PartialEq for BlackCard {
+    fn eq(&self, other: &Self) -> bool {
+        self.text == other.text && self.pick == other.pick
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
     }
 }
 
@@ -26,29 +44,98 @@ impl Display for WhiteCard {
     }
 }
 
-pub fn load_cards() -> (Deck<BlackCard>, Deck<WhiteCard>) {
-    let card_json_bytes = include_bytes!("cards.json");
-    let card_json: Value = serde_json::from_slice(card_json_bytes).unwrap();
-    let card_data = card_json.as_object().unwrap();
-    let black_cards: Vec<BlackCard> =
-        serde_json::from_value(card_data["blackCards"].to_owned()).unwrap();
+impl Clone for WhiteCard {
+    fn clone(&self) -> Self {
+        Self {
+            text: self.text.clone(),
+        }
+    }
+}
 
-    let white_cards: Vec<WhiteCard> = card_data["whiteCards"]
-        .as_array()
-        .unwrap()
-        .into_iter()
-        .map(|c| {
-            if let Value::String(card_text) = c {
-                WhiteCard {
-                    text: card_text.to_owned(),
-                }
-            } else {
-                panic!("Found unexpected value parsing white cards: {:?}", c);
-            }
+impl PartialEq for WhiteCard {
+    fn eq(&self, other: &Self) -> bool {
+        self.text == other.text
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
+    }
+}
+
+pub fn load_from_json(json_str: &str) -> Result<(Vec<BlackCard>, Vec<WhiteCard>), &'static str> {
+    let card_data_json: Value = serde_json::from_str(json_str).unwrap();
+    let card_data = match card_data_json {
+        Value::Object(card_objects) => Ok(card_objects),
+        _ => Err("Failed to parse cards JSON."),
+    }
+    .unwrap();
+
+    let black_card_data = card_data["blackCards"].clone();
+    let black_cards: Vec<BlackCard> = serde_json::from_value(black_card_data).unwrap();
+
+    let white_card_data = card_data["whiteCards"].clone();
+    let white_card_texts: Vec<String> = serde_json::from_value(white_card_data).unwrap();
+    let white_cards = white_card_texts
+        .iter()
+        .map(|txt| WhiteCard {
+            text: txt.to_owned(),
         })
         .collect();
 
-    let black_deck = Deck::new(black_cards);
-    let white_deck = Deck::new(white_cards);
-    (black_deck, white_deck)
+    Ok((black_cards, white_cards))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_load_from_json() {
+        let sample_json = r#"
+        {
+            "blackCards": [
+                {
+                    "text": "Black card 1",
+                    "pick": 1
+                },
+                {
+                    "text": "Black card 2",
+                    "pick": 1
+                }
+            ],
+            "whiteCards": [
+                "White card text 1",
+                "White card text 2",
+                "White card text 3"
+            ]
+        }
+        "#;
+
+        let expected_black_cards = vec![
+            BlackCard {
+                text: "Black card 1".to_owned(),
+                pick: 1,
+            },
+            BlackCard {
+                text: "Black card 2".to_owned(),
+                pick: 1,
+            },
+        ];
+
+        let expected_white_cards = vec![
+            WhiteCard {
+                text: "White card text 1".to_owned(),
+            },
+            WhiteCard {
+                text: "White card text 2".to_owned(),
+            },
+            WhiteCard {
+                text: "White card text 3".to_owned(),
+            },
+        ];
+
+        let (black_cards, white_cards) = load_from_json(sample_json).unwrap();
+        assert_eq!(black_cards, expected_black_cards);
+        assert_eq!(white_cards, expected_white_cards);
+    }
 }
