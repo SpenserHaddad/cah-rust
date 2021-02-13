@@ -1,5 +1,10 @@
 use rand::seq::SliceRandom;
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum DeckError {
+    NoCards,
+}
+
 pub struct Deck<T> {
     draw_pile: Vec<T>,
     active_cards: Vec<T>,
@@ -21,15 +26,19 @@ where
         }
     }
 
-    pub fn draw(&mut self) -> Result<T, &'static str> {
+    pub fn draw(&mut self) -> Result<T, DeckError> {
         if self.draw_pile.len() == 0 {
-            self.shuffle()
+            if self.discard_pile.len() == 0 {
+                return Err(DeckError::NoCards);
+            } else {
+                self.shuffle()
+            }
         }
         let drawn_card = self.draw_pile.remove(0);
         Ok(drawn_card)
     }
 
-    pub fn draw_many(&mut self, count: usize) -> Result<Vec<T>, &'static str> {
+    pub fn draw_many(&mut self, count: usize) -> Result<Vec<T>, DeckError> {
         let mut drawn_cards = Vec::with_capacity(count);
         for _ in 0..count {
             match self.draw() {
@@ -67,10 +76,30 @@ mod tests {
     }
 
     #[test]
-    fn test_draw() {
+    fn test_draw_returns_correct_value() {
         let ints = vec![1, 2, 3, 4, 5];
         let mut int_deck = Deck::new(ints);
         let drawn_int = int_deck.draw().unwrap();
         assert_eq!(drawn_int, 1);
+    }
+
+    #[test]
+    fn test_draw_no_cards_returns_err() {
+        let ints = vec![0];
+        let mut int_deck = Deck::new(ints);
+        let drawn_int = int_deck.draw().unwrap();
+        assert_eq!(drawn_int, 0);
+
+        let result = int_deck.draw();
+        assert_eq!(result, Err(DeckError::NoCards));
+    }
+
+    #[test]
+    fn test_draw_many_returns_values() {
+        let ints = vec![1, 2, 3, 4, 5];
+        let expected_ints = vec![1, 2, 3];
+        let mut int_deck = Deck::new(ints);
+        let drawn_ints = int_deck.draw_many(3).unwrap();
+        assert_eq!(drawn_ints, expected_ints);
     }
 }
