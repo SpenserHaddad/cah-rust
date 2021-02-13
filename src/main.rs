@@ -6,8 +6,8 @@ use game::cards::Deck;
 fn main() -> Result<(), ()> {
     let card_json_bytes = include_str!("cards.json");
     let (black_cards, white_cards) = load_from_json(card_json_bytes).unwrap();
-    let mut black_deck = Deck::new(black_cards.clone());
-    let mut white_deck = Deck::new(white_cards.clone());
+    let mut black_deck = Deck::new(black_cards.clone()).unwrap();
+    let mut white_deck = Deck::new(white_cards.clone()).unwrap();
 
     println!("Found {} black cards!", black_deck.len());
     println!("Found {} white cards!", white_deck.len());
