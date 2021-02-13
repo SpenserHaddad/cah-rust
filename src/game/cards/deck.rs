@@ -27,11 +27,11 @@ where
     }
 
     pub fn draw(&mut self) -> Result<T, DeckError> {
-        if self.draw_pile.len() == 0 {
-            if self.discard_pile.len() == 0 {
-                return Err(DeckError::NoCards);
-            } else {
+        if self.draw_pile.is_empty() {
+            if !self.discard_pile.is_empty() {
                 self.shuffle()
+            } else {
+                return Err(DeckError::NoCards);
             }
         }
         let drawn_card = self.draw_pile.remove(0);
