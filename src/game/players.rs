@@ -12,6 +12,14 @@ pub struct Player {
 }
 
 impl Player {
+    pub fn new(name: String) -> Self {
+        Self {
+            name,
+            score: 0,
+            hand: Vec::with_capacity(HAND_SIZE),
+        }
+    }
+
     pub fn fill_hand(&mut self, deck: &mut Deck<WhiteCard>) {
         let to_draw = HAND_SIZE - self.hand.len();
         let mut drawn_cards = deck.draw_many(to_draw).unwrap();
