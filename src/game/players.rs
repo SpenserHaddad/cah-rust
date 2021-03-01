@@ -6,8 +6,7 @@ use crate::game;
 const HAND_SIZE: usize = 10;
 
 pub struct Player {
-    name: String,
-    score: u8,
+    pub name: String,
     hand: Vec<WhiteCard>,
 }
 
@@ -15,7 +14,6 @@ impl Player {
     pub fn new(name: String) -> Self {
         Self {
             name,
-            score: 0,
             hand: Vec::with_capacity(HAND_SIZE),
         }
     }
