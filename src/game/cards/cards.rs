@@ -4,8 +4,8 @@ use std::fmt::{Display, Formatter};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BlackCard {
-    text: String,
-    pick: u8,
+    pub text: String,
+    pub pick: u8,
 }
 
 impl Display for BlackCard {
@@ -35,7 +35,7 @@ impl PartialEq for BlackCard {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WhiteCard {
-    text: String,
+    pub text: String,
 }
 
 impl Display for WhiteCard {
