@@ -1,7 +1,8 @@
 mod game;
 
-use game::cards::load_from_json;
-use game::cards::Deck;
+use game::settings::GameSettings;
+use game::{cards::load_from_json, players::SamplePlayer};
+use game::{cards::Deck, game::CahGame};
 
 fn main() -> Result<(), ()> {
     let card_json_bytes = include_str!("cards.json");
@@ -22,5 +23,20 @@ fn main() -> Result<(), ()> {
     for (idx, wc) in white_hand.iter().enumerate() {
         println!("{} - {}", idx, wc)
     }
+
+    let game_config = GameSettings {
+        player_count: 4,
+        winning_score: 10,
+    };
+    let players: Vec<SamplePlayer> = vec![
+        SamplePlayer::new("Player1".to_owned()),
+        SamplePlayer::new("Player2".to_owned()),
+    ];
+    let mut game = CahGame::new(game_config, black_deck, white_deck);
+    for p in players {
+        game.add_player(p).unwrap();
+    }
+    game.setup_game();
+    game.play_turn();
     Ok(())
 }
